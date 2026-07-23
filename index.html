@@ -540,9 +540,67 @@
       margin-top: 16px;
       padding-bottom: 3px;
       border-bottom: 1px solid var(--text);
+      border-top: 0;
+      border-right: 0;
+      border-left: 0;
+      background: transparent;
       color: var(--text);
       font-size: 13px;
       text-decoration: none;
+    }
+
+    .comments-panel {
+      margin-top: 54px;
+      padding: clamp(24px, 4vw, 48px);
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .comments-panel[hidden] {
+      display: none;
+    }
+
+    .comments-header {
+      margin-bottom: 32px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .comments-header h3 {
+      margin-top: 5px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 400;
+    }
+
+    .comments-close {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .comments-close:hover {
+      background: var(--suggestion-hover);
+    }
+
+    .comments-close:focus-visible {
+      outline: 2px solid var(--text);
+      outline-offset: 3px;
+    }
+
+    .comments-loading,
+    .comments-error {
+      padding: 28px 0;
+      color: var(--muted);
+      font-size: 14px;
     }
 
     .no-results {
@@ -1008,6 +1066,32 @@
           검색 결과가 없습니다.
         </div>
 
+        <section
+          class="comments-panel"
+          id="storeCommentsPanel"
+          aria-labelledby="commentsTitle"
+          hidden
+        >
+          <div class="comments-header">
+            <div>
+              <div class="eyebrow">Store discussion</div>
+              <h3 id="commentsTitle">스토어 댓글</h3>
+            </div>
+            <button
+              class="comments-close"
+              id="commentsClose"
+              type="button"
+              aria-label="댓글 닫기"
+            >×</button>
+          </div>
+          <div id="disqus_thread"></div>
+          <p class="comments-loading" id="commentsLoading">댓글을 불러오는 중입니다…</p>
+          <noscript>
+            댓글을 보려면 JavaScript를 활성화해주세요.
+            <a href="https://disqus.com/?ref_noscript">Disqus에서 확인하기</a>
+          </noscript>
+        </section>
+
         <p class="disclaimer">
           브랜드 정보는 일반적인 참고 정보이며 실시간 재고를 의미하지 않습니다.
           방문 전 해당 스토어에 현재 취급 여부를 확인해주세요.
@@ -1362,6 +1446,90 @@
     ];
 
     let selectedCity = "";
+    let activeCommentsButton = null;
+    let disqusPageData = null;
+
+    const commentsPanel = document.getElementById("storeCommentsPanel");
+    const commentsTitle = document.getElementById("commentsTitle");
+    const commentsLoading = document.getElementById("commentsLoading");
+    const commentsClose = document.getElementById("commentsClose");
+
+    function getStoreIdentifier(store) {
+      return `store-${store.city}-${store.name}`
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function getStoreCommentsUrl(identifier) {
+      const url = new URL(window.location.href);
+      url.hash = "";
+      url.search = "";
+      url.searchParams.set("store", identifier);
+      return url.toString();
+    }
+
+    function closeStoreComments() {
+      commentsPanel.hidden = true;
+      if (activeCommentsButton) {
+        activeCommentsButton.setAttribute("aria-expanded", "false");
+        activeCommentsButton = null;
+      }
+    }
+
+    function loadDisqusComments(store, button) {
+      const identifier = getStoreIdentifier(store);
+      disqusPageData = {
+        identifier: identifier,
+        title: `${store.name} — Stockist`,
+        url: getStoreCommentsUrl(identifier)
+      };
+
+      if (activeCommentsButton && activeCommentsButton !== button) {
+        activeCommentsButton.setAttribute("aria-expanded", "false");
+      }
+
+      activeCommentsButton = button;
+      button.setAttribute("aria-expanded", "true");
+      commentsTitle.textContent = `${store.name} 댓글`;
+      commentsPanel.hidden = false;
+      commentsLoading.className = "comments-loading";
+      commentsLoading.textContent = "댓글을 불러오는 중입니다…";
+      commentsLoading.hidden = false;
+
+      window.disqus_config = function() {
+        this.page.url = disqusPageData.url;
+        this.page.identifier = disqusPageData.identifier;
+        this.page.title = disqusPageData.title;
+      };
+
+      if (window.DISQUS) {
+        window.DISQUS.reset({
+          reload: true,
+          config: window.disqus_config
+        });
+        commentsLoading.hidden = true;
+      } else if (!document.querySelector('script[src*="storefinder2.disqus.com/embed.js"]')) {
+        const script = document.createElement("script");
+        script.src = "https://storefinder2.disqus.com/embed.js";
+        script.setAttribute("data-timestamp", String(Date.now()));
+        script.onload = function() {
+          commentsLoading.hidden = true;
+        };
+        script.onerror = function() {
+          commentsLoading.className = "comments-error";
+          commentsLoading.textContent = "댓글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
+        };
+        (document.head || document.body).appendChild(script);
+      }
+
+      setTimeout(function() {
+        commentsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+
+    commentsClose.addEventListener("click", closeStoreComments);
 
     function showStores(city, clickedButton) {
       selectedCity = city;
@@ -1412,6 +1580,7 @@
         return matchesCity && matchesSearch;
       });
 
+      closeStoreComments();
       storeGrid.innerHTML = "";
 
       filteredStores.forEach(function(store) {
@@ -1439,10 +1608,19 @@
             ${store.brands.join(", ")}
           </p>
 
-          <a href="#" class="store-link">
-            View store
-          </a>
+          <button
+            type="button"
+            class="store-link"
+            aria-expanded="false"
+            aria-controls="storeCommentsPanel"
+          >
+            View comments
+          </button>
         `;
+
+        article.querySelector(".store-link").addEventListener("click", function(event) {
+          loadDisqusComments(store, event.currentTarget);
+        });
 
         storeGrid.appendChild(article);
       });
