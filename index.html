@@ -565,6 +565,105 @@
       font-size: 12px;
     }
 
+    .partnership-section {
+      padding: 95px 0;
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .partnership-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(440px, 1.15fr);
+      gap: clamp(60px, 9vw, 130px);
+      align-items: start;
+    }
+
+    .partnership-copy .section-title {
+      max-width: 500px;
+      margin-bottom: 24px;
+    }
+
+    .partnership-copy p {
+      max-width: 450px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .partnership-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px 18px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .form-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-field label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .form-field input,
+    .form-field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--background);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color 160ms ease;
+    }
+
+    .form-field input {
+      min-height: 52px;
+      padding: 0 16px;
+    }
+
+    .form-field textarea {
+      min-height: 150px;
+      padding: 14px 16px;
+      resize: vertical;
+    }
+
+    .form-field input:focus,
+    .form-field textarea:focus {
+      border-color: var(--text);
+    }
+
+    .form-field input::placeholder,
+    .form-field textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.75;
+    }
+
+    .partnership-submit {
+      min-height: 54px;
+      grid-column: 1 / -1;
+      border: 1px solid var(--active-bg);
+      background: var(--active-bg);
+      color: var(--active-text);
+      font-weight: 700;
+      transition: opacity 160ms ease;
+    }
+
+    .partnership-submit:hover {
+      opacity: 0.78;
+    }
+
+    .partnership-submit:focus-visible {
+      outline: 2px solid var(--text);
+      outline-offset: 3px;
+    }
+
     .footer {
       padding: 45px 0;
       background: var(--dark);
@@ -623,6 +722,11 @@
       .stores-top {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .partnership-layout {
+        grid-template-columns: 1fr;
+        gap: 45px;
       }
 
       .search-input {
@@ -714,6 +818,19 @@
       .footer-inner {
         flex-direction: column;
       }
+
+      .partnership-section {
+        padding: 70px 0;
+      }
+
+      .partnership-form {
+        grid-template-columns: 1fr;
+      }
+
+      .form-field.full-width,
+      .partnership-submit {
+        grid-column: auto;
+      }
     }
   </style>
 </head>
@@ -727,7 +844,7 @@
         <a href="#stores">Stores</a>
         <a href="#">Brands</a>
         <a href="#cities">Cities</a>
-        <a href="#">Guides</a>
+        <a href="#partner">Partner</a>
         <a href="#">My Lists</a>
       </nav>
 
@@ -895,6 +1012,74 @@
           브랜드 정보는 일반적인 참고 정보이며 실시간 재고를 의미하지 않습니다.
           방문 전 해당 스토어에 현재 취급 여부를 확인해주세요.
         </p>
+      </div>
+    </section>
+
+    <section class="partnership-section" id="partner">
+      <div class="container partnership-layout">
+        <div class="partnership-copy">
+          <div class="eyebrow">Partner with Stockist</div>
+          <h2 class="section-title">함께할 파트너를 기다립니다.</h2>
+          <p>
+            입점 제안, 브랜드 협업 또는 스토어 정보 등록을 원하시면 아래 양식을
+            보내주세요. 내용을 확인한 후 입력하신 이메일로 연락드리겠습니다.
+          </p>
+        </div>
+
+        <form
+          class="partnership-form"
+          action="https://formspree.io/f/mlgqwobw"
+          method="POST"
+        >
+          <input type="hidden" name="_subject" value="Stockist 제휴 문의" />
+
+          <div class="form-field">
+            <label for="partnerCompany">업체·브랜드명</label>
+            <input
+              id="partnerCompany"
+              name="company"
+              type="text"
+              placeholder="브랜드 또는 스토어 이름"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="partnerName">담당자명</label>
+            <input
+              id="partnerName"
+              name="name"
+              type="text"
+              placeholder="성함"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <div class="form-field full-width">
+            <label for="partnerEmail">이메일</label>
+            <input
+              id="partnerEmail"
+              name="email"
+              type="email"
+              placeholder="hello@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="form-field full-width">
+            <label for="partnerMessage">제휴 내용</label>
+            <textarea
+              id="partnerMessage"
+              name="message"
+              placeholder="제안 내용을 간단히 작성해주세요."
+              required
+            ></textarea>
+          </div>
+
+          <button class="partnership-submit" type="submit">제휴 문의 보내기</button>
+        </form>
       </div>
     </section>
   </main>
