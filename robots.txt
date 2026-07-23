@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://storefinder2.pages.dev/sitemap.xml
